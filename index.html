@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coin Game</title>
+    <style>
+        .coin {
+            width: 100px;
+            height: 100px;
+            background: gold;
+            border-radius: 50%;
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s;
+        }
+        .coin:active {
+            transform: translate(-50%, -50%) scale(0.95);
+        }
+        .score {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+        }
+        .send-button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">امتیاز: <span id="score">0</span></div>
+    <div class="coin" onclick="increaseScore()"></div>
+    <button class="send-button" onclick="sendScoreToWallet()">ارسال امتیاز به کیف پول</button>
+
+    <script>
+        let score = 0;
+        
+        function increaseScore() {
+            score++;
+            document.getElementById('score').textContent = score;
+        }
+        
+        function sendScoreToWallet() {
+            if (score > 0) {
+                const amount = score * 50; // هر امتیاز 50 تومان
+                fetch('/add_game_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({score: score, amount: amount})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`✅ ${amount} تومان به کیف پول شما اضافه شد!`);
+                        score = 0;
+                        document.getElementById('score').textContent = 0;
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
