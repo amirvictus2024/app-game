@@ -1,75 +1,90 @@
 <!DOCTYPE html>
-<html>
+<html dir="rtl">
 <head>
-    <title>Coin Game</title>
+    <meta charset="UTF-8">
+    <title>بازی سکه</title>
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #1a1a1a;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
         .coin {
             width: 100px;
             height: 100px;
-            background: gold;
-            border-radius: 50%;
             cursor: pointer;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             transition: transform 0.1s;
+            user-select: none;
         }
         .coin:active {
-            transform: translate(-50%, -50%) scale(0.95);
+            transform: scale(0.95);
         }
-        .score {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            font-size: 24px;
+        .stats {
+            margin-top: 20px;
+            font-size: 1.2em;
         }
-        .send-button {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+        .withdraw {
+            margin-top: 20px;
             padding: 10px 20px;
             background: #4CAF50;
-            color: white;
             border: none;
             border-radius: 5px;
+            color: white;
             cursor: pointer;
+            font-size: 1em;
+        }
+        .withdraw:hover {
+            background: #45a049;
         }
     </style>
 </head>
 <body>
-    <div class="score">امتیاز: <span id="score">0</span></div>
-    <div class="coin" onclick="increaseScore()"></div>
-    <button class="send-button" onclick="sendScoreToWallet()">ارسال امتیاز به کیف پول</button>
+    <img src="https://cdn3.iconfinder.com/data/icons/finance-152/64/9-512.png" class="coin" alt="سکه">
+    <div class="stats">
+        سکه‌های شما: <span id="coins">0</span>
+    </div>
+    <button class="withdraw" onclick="withdraw()">برداشت مبلغ</button>
 
     <script>
-        let score = 0;
-        
-        function increaseScore() {
-            score++;
-            document.getElementById('score').textContent = score;
-        }
-        
-        function sendScoreToWallet() {
-            if (score > 0) {
-                const amount = score * 50; // هر امتیاز 50 تومان
-                fetch('/add_game_score', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({score: score, amount: amount})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(`✅ ${amount} تومان به کیف پول شما اضافه شد!`);
-                        score = 0;
-                        document.getElementById('score').textContent = 0;
-                    }
-                });
+        let coins = 0;
+        const coinElem = document.querySelector('.coin');
+        const coinsElem = document.getElementById('coins');
+
+        coinElem.addEventListener('click', () => {
+            coins += 50;
+            coinsElem.textContent = coins;
+            coinElem.style.transform = 'scale(0.95)';
+            setTimeout(() => coinElem.style.transform = '', 100);
+        });
+
+        function withdraw() {
+            if (coins < 100) {
+                alert('حداقل مبلغ برداشت 100 تومان است');
+                return;
             }
+            fetch('/__/withdraw', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount: coins })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ مبلغ ${coins} تومان به کیف پول شما در ربات اضافه شد`);
+                    coins = 0;
+                    coinsElem.textContent = '0';
+                } else {
+                    alert('❌ خطا در برداشت مبلغ');
+                }
+            });
         }
     </script>
 </body>
